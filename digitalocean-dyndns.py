@@ -42,7 +42,12 @@ def request(uri, params={}):
         'client_id': CLIENTID,
         'api_key': APIKEY
     }
-    params = dict(auth.items() + params.items())
+
+    if sys.version_info.major == 3:
+        params = dict(list(auth.items()) + list(params.items()))
+    else:
+        params = dict(auth.items() + params.items())
+
     logging.debug('Requesting: %s' % (url))
     r = requests.get(url, params=params)
     jason = r.json()
@@ -57,7 +62,7 @@ parser = argparse.ArgumentParser(description='Dynamic DNS updater for Digital Oc
 parser.add_argument('--domain', '-d', help='Domain name', required=True)
 parser.add_argument('--record', '-r', help='Record for domain', required=True)
 parser.add_argument('--allownew', '-c', help='Allow creation of a new record', action='store_true')
-parser.add_argument('--verbose', '-v', help='Increase verbosity', action='count')
+parser.add_argument('--verbose', '-v', help='Increase verbosity', action='count', default=0)
 args = parser.parse_args()
 
 # Verbosity level
