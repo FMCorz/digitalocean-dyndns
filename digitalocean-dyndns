@@ -27,11 +27,15 @@ API = 'https://api.digitalocean.com'
 DOMAIN_NOT_FOUND = 1
 RECORD_NOT_FOUND = 2
 REQUEST_ERROR = 4
+IP_FETCH_FAILED = 8
 
 
 def getIp():
     """Return the external IPv4"""
     r = requests.get('http://api.externalip.net/ip')
+    if r.status_code != 200:
+        logging.error('Could not obtain IP from external resource')
+        sys.exit(IP_FETCH_FAILED)
     return r.text
 
 
