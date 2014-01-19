@@ -35,6 +35,8 @@ Edit the file to fill in your client ID and API key.
 
 That's it.
 
+(To install `pip` use `brew`, `apt-get` or see: http://www.pip-installer.org/en/latest/installing.html)
+
 License
 -------
 
