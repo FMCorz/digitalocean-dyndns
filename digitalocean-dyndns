@@ -128,5 +128,5 @@ else:
             'record_type': 'A',
             'data': ip
         }
-        result = request('/domains/{0}/records/{1}'.format(domainId, recordId), params=params)
+        result = request('/domains/{0}/records/{1}/edit'.format(domainId, recordId), params=params)
         logging.info('Updated record with IP %s' % (ip))
