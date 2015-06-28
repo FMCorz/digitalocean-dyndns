@@ -1,7 +1,7 @@
 Digital Ocean DynDNS
 ====================
 
-Updates the A record of a domain using the API v1 provided by Digital Ocean.
+Updates the A record of a domain using the API v2 provided by Digital Ocean.
 
 Usage
 -----
@@ -31,7 +31,9 @@ Install the dependency.
 
 Clone the repository, or download it.
 
-Edit the file to fill in your client ID and API key.
+Get a read/write token from your [DigitalOcean account](https://cloud.digitalocean.com/settings/applications).
+
+Edit the file to fill in your token.
 
 That's it.
 

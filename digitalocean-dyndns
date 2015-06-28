@@ -4,7 +4,7 @@
 """
 Digital Ocean DynDNS
 
-Dynamic DNS updater for Digital Ocean API v1
+Dynamic DNS updater for Digital Ocean API v2
 
 Copyright (c) 2014 Frédéric Massart - FMCorz.net
 
@@ -18,10 +18,10 @@ import sys
 import requests
 import argparse
 import logging
+import json
 
-CLIENTID = 'XXXXXXXXXX'
-APIKEY = 'YYYYYYYYYY'
-API = 'https://api.digitalocean.com/v1'
+TOKEN = 'X'
+API = 'https://api.digitalocean.com/v2'
 
 # Error codes
 DOMAIN_NOT_FOUND = 1
@@ -38,28 +38,27 @@ def getIp():
         sys.exit(IP_FETCH_FAILED)
     return r.text
 
-
-def request(uri, params={}):
+def request(uri, params={}, method='GET'):
     """Perform a request on Digital Ocean API"""
     url = API + '/' + uri.strip('/')
-    auth = {
-        'client_id': CLIENTID,
-        'api_key': APIKEY
+
+    headers = {
+        'Authorization': 'Bearer {0}'.format(TOKEN)
     }
 
-    if sys.version_info.major == 3:
-        params = dict(list(auth.items()) + list(params.items()))
+    logging.debug('Requesting: %s (%s)' % (url, method))
+    if method == 'POST':
+        r = requests.post(url, headers=headers, data=params)
+    elif method == 'PUT':
+        r = requests.put(url, headers=headers, data=params)
     else:
-        params = dict(auth.items() + params.items())
+        r = requests.get(url, params=params, headers=headers)
 
-    logging.debug('Requesting: %s' % (url))
-    r = requests.get(url, params=params)
-    jason = r.json()
-    if jason.get('status', '') != 'OK':
-        logging.error(u'Host replied with a non-OK status. Message: %s' % jason.get('error_message'))
+    if r.status_code < 200 or r.status_code >= 300:
+        logging.error(u'Host replied with a non-OK status. Error: %s' % r.status_code)
         sys.exit(REQUEST_ERROR)
-    return jason
 
+    return r.json()
 
 # Define arguments
 parser = argparse.ArgumentParser(description='Dynamic DNS updater for Digital Ocean')
@@ -76,26 +75,14 @@ elif args.verbose == 1:
     debug = logging.INFO
 else:
     debug = logging.WARNING
+
 logging.basicConfig(format='%(message)s', level=debug)
-
-# Finding the domain ID
-domainId = None
-domains = request('/domains')
-for domain in domains.get('domains'):
-    if domain.get('name') == args.domain:
-        domainId = domain.get('id')
-        logging.info('Found domain %s, ID: %s' % (args.domain, domainId))
-        break
-
-if not domainId:
-    logging.warning('Could not find domain %s' % (args.domain))
-    sys.exit(DOMAIN_NOT_FOUND)
 
 # Looking up the records
 recordId = None
-records = request('/domains/{0}/records'.format(domainId))
-for record in records.get('records'):
-    if record.get('record_type') == 'A' and record.get('name') == args.record:
+records = request('/domains/{0}/records'.format(args.domain))
+for record in records.get('domain_records'):
+    if record.get('type') == 'A' and record.get('name') == args.record:
         recordId = record.get('id')
         logging.info('Found record %s, ID: %s' % (args.record, recordId))
         break
@@ -108,13 +95,12 @@ if not recordId:
 
     ip = getIp()
     params = {
-        'domain_id': domainId,
-        'record_type': 'A',
+        'type': 'A',
         'name': args.record,
         'data': ip
     }
-    result = request('/domains/{0}/records/new'.format(domainId), params=params)
-    logging.info('Record created with ID %s using IP %s' % (result.get('record', {}).get('id', '<?>'), ip))
+    result = request('/domains/{0}/records'.format(args.domain), params=params, method='POST')
+    logging.info('Record created with ID %s using IP %s' % (result.get('domain_record', {}).get('id', '<?>'), ip))
 
 # Update the existing record
 else:
@@ -124,9 +110,9 @@ else:
 
     else:
         params = {
-            'record_id': recordId,
-            'record_type': 'A',
+            'type': 'A',
+            'name': args.record,
             'data': ip
         }
-        result = request('/domains/{0}/records/{1}/edit'.format(domainId, recordId), params=params)
+        result = request('/domains/{0}/records/{1}'.format(args.domain, recordId), params=params, method="PUT")
         logging.info('Updated record with IP %s' % (ip))
