@@ -1,7 +1,7 @@
 Digital Ocean DynDNS
 ====================
 
-Updates the A record of a domain using the API provided by Digital Ocean.
+Updates the A record of a domain using the API v1 provided by Digital Ocean.
 
 Usage
 -----

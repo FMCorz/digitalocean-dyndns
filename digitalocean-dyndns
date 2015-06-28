@@ -4,7 +4,7 @@
 """
 Digital Ocean DynDNS
 
-Dynamic DNS updater for Digital Ocean
+Dynamic DNS updater for Digital Ocean API v1
 
 Copyright (c) 2014 Frédéric Massart - FMCorz.net
 
@@ -21,7 +21,7 @@ import logging
 
 CLIENTID = 'XXXXXXXXXX'
 APIKEY = 'YYYYYYYYYY'
-API = 'https://api.digitalocean.com'
+API = 'https://api.digitalocean.com/v1'
 
 # Error codes
 DOMAIN_NOT_FOUND = 1
